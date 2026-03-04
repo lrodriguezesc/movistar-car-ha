@@ -60,13 +60,28 @@
       "location_time": { "name": "Location Time" },
       "data_synced": { "name": "Data Synced" },
       "wifi_ssid": { "name": "WiFi SSID" },
-      "wifi_data_used": { "name": "WiFi Data Used" }
+      "wifi_data_used": { "name": "WiFi Data Used" },
+      "wifi_password": { "name": "WiFi Password" },
+      "wifi_data_pack_size": { "name": "WiFi Data Pack Size" },
+      "wifi_ip_address": { "name": "WiFi IP Address" },
+      "battery_level": { "name": "Device Battery" },
+      "activation_date": { "name": "Activation Date" },
+      "association_date": { "name": "Association Date" },
+      "disconnection_date": { "name": "Disconnection Date" },
+      "parking_status": { "name": "Parking Status" },
+      "error_count": { "name": "OBD Error Count" },
+      "event_type": { "name": "Event Type" },
+      "sim_number": { "name": "SIM Number" },
+      "latitude": { "name": "Latitude" },
+      "longitude": { "name": "Longitude" }
     },
     "binary_sensor": {
       "connected": { "name": "Connected" },
       "errors": { "name": "OBD Errors" },
       "wifi_enabled": { "name": "WiFi Enabled" },
-      "valid_position": { "name": "GPS Valid" }
+      "valid_position": { "name": "GPS Valid" },
+      "moving": { "name": "Moving" },
+      "incompatible": { "name": "Incompatible Device" }
     }
   }
 }

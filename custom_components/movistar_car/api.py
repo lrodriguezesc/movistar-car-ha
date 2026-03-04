@@ -160,6 +160,8 @@ class MovistarCarAPI:
 
         now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
 
+        wifi = device.get("WiFiStatus", {})
+
         return {
             # Device data
             "device_id": device.get("Id"),
@@ -170,11 +172,20 @@ class MovistarCarAPI:
             "last_reception": device.get("LastReception"),
             "device_status": device.get("DeviceStatus"),
             "activation_date": device.get("ActivationDate"),
+            "association_date": device.get("AssociationDate"),
             "battery_level": device.get("BatteryLevel"),
+            "incompatible": device.get("Incompatible", False),
+            "disconnection_date": device.get("DisconnectionDate"),
             # WiFi data
-            "wifi_enabled": device.get("WiFiStatus", {}).get("Enabled"),
-            "wifi_ssid": device.get("WiFiStatus", {}).get("SSID"),
-            "wifi_data_used": device.get("WiFiStatus", {}).get("UsedData"),
+            "wifi_enabled": wifi.get("Enabled"),
+            "wifi_ssid": wifi.get("SSID"),
+            "wifi_password": wifi.get("Password"),
+            "wifi_data_used": wifi.get("UsedData"),
+            "wifi_data_pack_size": wifi.get("DataPackSize"),
+            "wifi_ip_address": wifi.get("IPAddress"),
+            # SIM data
+            "sim_serial": device.get("SIMSerial"),
+            "sim_number": device.get("SIMNumber"),
             # Location data
             "service_id": status.get("ServiceId"),
             "latitude": latest_event.get("Latitude"),
@@ -185,9 +196,14 @@ class MovistarCarAPI:
             "valid_position": latest_event.get("ValidPosition", False),
             "location_time": latest_event.get("Date"),
             "total_kilometers": status.get("TotalKilometers"),
+            "event_type": latest_event.get("EventType"),
+            "parking_status": status.get("OnStreetParkingStatus"),
             # OBD data
             "errors": has_errors,
+            "error_count": sum(1 for c in obd_codes if not c.get("Solved", True)),
             "obd_codes": obd_codes,
+            # Derived
+            "moving": (latest_event.get("Speed") or 0) > 0,
             # Meta
             "data_synced": now_ms,
         }

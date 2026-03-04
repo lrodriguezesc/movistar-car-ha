@@ -48,6 +48,21 @@ BINARY_SENSOR_DESCRIPTIONS: list[MovistarCarBinarySensorDescription] = [
         icon="mdi:crosshairs-gps",
         value_fn=lambda d: d.get("valid_position"),
     ),
+    MovistarCarBinarySensorDescription(
+        key="moving",
+        translation_key="moving",
+        device_class=BinarySensorDeviceClass.MOVING,
+        icon="mdi:car-speed-limiter",
+        value_fn=lambda d: d.get("moving"),
+    ),
+    MovistarCarBinarySensorDescription(
+        key="incompatible",
+        translation_key="incompatible",
+        device_class=BinarySensorDeviceClass.PROBLEM,
+        icon="mdi:car-off",
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: d.get("incompatible"),
+    ),
 ]
 
 
