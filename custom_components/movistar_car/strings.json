@@ -1,0 +1,72 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Movistar Car Login",
+        "description": "Enter your Movistar Mobility credentials.",
+        "data": {
+          "username": "Email",
+          "password": "Password",
+          "enterprise_key": "Enterprise Key (advanced)"
+        }
+      },
+      "select_vehicle": {
+        "title": "Select Vehicle",
+        "description": "Choose the vehicle you want to track.",
+        "data": {
+          "vehicle_index": "Vehicle"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate",
+        "description": "Your session has expired. Please enter your credentials again.",
+        "data": {
+          "username": "Email",
+          "password": "Password",
+          "enterprise_key": "Enterprise Key (advanced)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid credentials",
+      "cannot_connect": "Cannot connect to Movistar API",
+      "no_devices": "No vehicles found in your account",
+      "unknown": "An unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "This vehicle is already configured",
+      "reauth_successful": "Re-authentication successful"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Movistar Car Options",
+        "data": {
+          "scan_interval": "Update interval (seconds)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "voltage": { "name": "Battery Voltage" },
+      "fuel": { "name": "Fuel Level" },
+      "speed": { "name": "Speed" },
+      "odometer": { "name": "Odometer" },
+      "trip_odometer": { "name": "Trip Odometer" },
+      "heading": { "name": "Heading" },
+      "last_reception": { "name": "Last Reception" },
+      "location_time": { "name": "Location Time" },
+      "data_synced": { "name": "Data Synced" },
+      "wifi_ssid": { "name": "WiFi SSID" },
+      "wifi_data_used": { "name": "WiFi Data Used" }
+    },
+    "binary_sensor": {
+      "connected": { "name": "Connected" },
+      "errors": { "name": "OBD Errors" },
+      "wifi_enabled": { "name": "WiFi Enabled" },
+      "valid_position": { "name": "GPS Valid" }
+    }
+  }
+}

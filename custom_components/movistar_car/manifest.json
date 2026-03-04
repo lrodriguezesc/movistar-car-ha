@@ -1,0 +1,11 @@
+{
+  "domain": "movistar_car",
+  "name": "Movistar Car",
+  "codeowners": [],
+  "config_flow": true,
+  "dependencies": [],
+  "documentation": "",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "1.0.0"
+}
