@@ -1,11 +1,12 @@
 import logging
 from dataclasses import dataclass
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.exceptions import ConfigEntryAuthFailed
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+from homeassistant.util import dt as dt_util
 
 from .api import (
     MovistarCarAPI,
@@ -25,6 +26,9 @@ from .const import (
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+AUTH_RETRY_DELAY = timedelta(minutes=10)
+AUTH_MAX_RETRIES = 2
 
 
 @dataclass
@@ -69,21 +73,42 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
         if token:
             self.api.set_token(token)
 
+        self._auth_retry_count: int = 0
+        self._next_auth_retry_at: datetime | None = None
+
     async def _async_update_data(self) -> MovistarCarData:
+        if (
+            self._next_auth_retry_at is not None
+            and dt_util.utcnow() < self._next_auth_retry_at
+        ):
+            raise UpdateFailed(
+                f"Waiting for auth retry at {self._next_auth_retry_at.isoformat()}"
+            )
+
         try:
             data = await self.hass.async_add_executor_job(
                 self.api.get_all_data, self.vehicle_index, self.service_id
             )
-        except MovistarCarAuthError as err:
-            # Try full re-login once
+        except MovistarCarAuthError:
+            # Try full re-login once using stored credentials
             try:
                 self.api.token = None
                 data = await self.hass.async_add_executor_job(
                     self.api.get_all_data, self.vehicle_index, self.service_id
                 )
             except MovistarCarAuthError as retry_err:
-                raise ConfigEntryAuthFailed(
-                    "Authentication failed. Please reconfigure."
+                self._auth_retry_count += 1
+                if self._auth_retry_count > AUTH_MAX_RETRIES:
+                    self._auth_retry_count = 0
+                    self._next_auth_retry_at = None
+                    raise ConfigEntryAuthFailed(
+                        f"Authentication failed after {AUTH_MAX_RETRIES} retries. "
+                        "Please reconfigure."
+                    ) from retry_err
+                self._next_auth_retry_at = dt_util.utcnow() + AUTH_RETRY_DELAY
+                raise UpdateFailed(
+                    f"Auth re-login failed, retry {self._auth_retry_count}/"
+                    f"{AUTH_MAX_RETRIES} at {self._next_auth_retry_at.isoformat()}"
                 ) from retry_err
             except Exception as retry_err:
                 raise UpdateFailed(f"Re-login failed: {retry_err}") from retry_err
@@ -91,6 +116,10 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
             raise UpdateFailed(f"Connection error: {err}") from err
         except Exception as err:
             raise UpdateFailed(f"Error fetching data: {err}") from err
+
+        # Successful fetch — clear any pending auth retry state
+        self._auth_retry_count = 0
+        self._next_auth_retry_at = None
 
         # Persist refreshed token
         if self.api.token and self.api.token != self.config_entry.data.get(CONF_TOKEN):
