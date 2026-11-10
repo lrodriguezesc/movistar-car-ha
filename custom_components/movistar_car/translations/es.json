@@ -1,0 +1,190 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Acceso a Movistar Car",
+        "description": "Introduce tus credenciales de Movistar Mobility.",
+        "data": {
+          "username": "Correo",
+          "password": "Contraseña",
+          "enterprise_key": "Clave de empresa (avanzado)",
+          "scan_interval": "Intervalo de actualización (segundos)",
+          "tank_capacity": "Capacidad del depósito (litros)"
+        },
+        "data_description": {
+          "scan_interval": "Cada cuánto se consulta a Movistar. Se puede cambiar después con Configurar.",
+          "tank_capacity": "Sirve para pasar el % de combustible a litros y calcular la autonomía. Se puede cambiar después con Configurar."
+        }
+      },
+      "select_vehicle": {
+        "title": "Elige el vehículo",
+        "description": "Elige el vehículo que quieres seguir.",
+        "data": {
+          "vehicle_index": "Vehículo"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Volver a autenticar",
+        "description": "Tu sesión ha caducado. Introduce tus credenciales otra vez.",
+        "data": {
+          "username": "Correo",
+          "password": "Contraseña",
+          "enterprise_key": "Clave de empresa (avanzado)"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Credenciales no válidas",
+      "cannot_connect": "No se puede conectar con la API de Movistar",
+      "no_devices": "No hay vehículos en tu cuenta",
+      "unknown": "Error inesperado"
+    },
+    "abort": {
+      "already_configured": "Este vehículo ya está configurado",
+      "reauth_successful": "Autenticación correcta"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Opciones de Movistar Car",
+        "data": {
+          "scan_interval": "Intervalo de actualización (segundos)",
+          "tank_capacity": "Capacidad del depósito (litros)"
+        },
+        "data_description": {
+          "tank_capacity": "Sirve para pasar el % de combustible a litros y calcular la autonomía."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "voltage": {
+        "name": "Voltaje de la batería"
+      },
+      "fuel": {
+        "name": "Nivel de combustible"
+      },
+      "speed": {
+        "name": "Velocidad"
+      },
+      "odometer": {
+        "name": "Cuentakilómetros"
+      },
+      "trip_odometer": {
+        "name": "Contador del servicio"
+      },
+      "heading": {
+        "name": "Rumbo"
+      },
+      "last_reception": {
+        "name": "Última recepción"
+      },
+      "location_time": {
+        "name": "Hora de la ubicación"
+      },
+      "data_synced": {
+        "name": "Datos sincronizados"
+      },
+      "wifi_ssid": {
+        "name": "SSID del WiFi"
+      },
+      "wifi_data_used": {
+        "name": "Datos WiFi usados"
+      },
+      "wifi_password": {
+        "name": "Contraseña del WiFi"
+      },
+      "wifi_data_pack_size": {
+        "name": "Tamaño del pack de datos WiFi"
+      },
+      "wifi_ip_address": {
+        "name": "IP del WiFi"
+      },
+      "battery_level": {
+        "name": "Batería del dispositivo"
+      },
+      "activation_date": {
+        "name": "Fecha de activación"
+      },
+      "association_date": {
+        "name": "Fecha de asociación"
+      },
+      "disconnection_date": {
+        "name": "Fecha de desconexión"
+      },
+      "parking_status": {
+        "name": "Estado de aparcamiento"
+      },
+      "error_count": {
+        "name": "Errores OBD"
+      },
+      "event_type": {
+        "name": "Tipo de evento"
+      },
+      "sim_number": {
+        "name": "Número de SIM"
+      },
+      "latitude": {
+        "name": "Latitud"
+      },
+      "longitude": {
+        "name": "Longitud"
+      },
+      "wifi_pack_expiry": {
+        "name": "Caducidad del pack de datos WiFi"
+      },
+      "driving_score_daily": {
+        "name": "Puntuación de conducción (hoy)"
+      },
+      "driving_score_month": {
+        "name": "Puntuación de conducción (mes)"
+      },
+      "next_itv": {
+        "name": "Próxima ITV"
+      },
+      "itv_days_left": {
+        "name": "Días hasta la ITV"
+      },
+      "avg_consumption": {
+        "name": "Consumo medio (homologado)"
+      },
+      "fuel_liters": {
+        "name": "Combustible (litros)"
+      },
+      "range_estimate": {
+        "name": "Autonomía estimada"
+      },
+      "real_consumption": {
+        "name": "Consumo medido"
+      },
+      "alarm_date": {
+        "name": "Última alarma"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Conectado"
+      },
+      "errors": {
+        "name": "Errores OBD"
+      },
+      "wifi_enabled": {
+        "name": "WiFi activado"
+      },
+      "valid_position": {
+        "name": "GPS válido"
+      },
+      "moving": {
+        "name": "En movimiento"
+      },
+      "alarm_armed": {
+        "name": "Alarma armada"
+      },
+      "incompatible": {
+        "name": "Incompatible"
+      }
+    }
+  }
+}

@@ -8,8 +8,8 @@
 GPS position, fuel and range, battery voltage, driving score, ITV date, WiFi data pack and more, from your Movistar Car / Movistar Mobility device.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
-![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
-![IoT class](https://img.shields.io/badge/iot__class-cloud__polling-lightgrey.svg)
+![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
+[![Validate](https://github.com/lrodriguezesc/movistar-car-ha/actions/workflows/validate.yml/badge.svg)](https://github.com/lrodriguezesc/movistar-car-ha/actions/workflows/validate.yml) ![IoT class](https://img.shields.io/badge/iot__class-cloud__polling-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 </div>
@@ -21,13 +21,15 @@ GPS position, fuel and range, battery voltage, driving score, ITV date, WiFi dat
 | | |
 |---|---|
 | 📍 **Live location** | Device tracker on the HA map, with heading and speed |
-| ⛽ **Fuel and range** | Fuel in % and litres, plus an estimated range in km |
+| ⛽ **Fuel and range** | Fuel in % and litres, **measured** consumption and an estimated range in km |
 | 🔋 **Car battery** | 12 V battery voltage from the OBD port |
 | 🏁 **Driving score** | Today's score, this month's score and the full yearly history |
 | 🛠️ **Maintenance** | Next ITV date, days left, OBD error count |
 | 📶 **WiFi hotspot** | Data pack used, size and expiry date |
 | 🚘 **Multi-vehicle** | Pick which car to track if your account has more than one |
 | ⚙️ **Configurable** | Update interval and tank size, at setup or later |
+| 🩺 **Diagnostics** | One-click redacted diagnostics download for bug reports |
+| 🌍 **Languages** | English and Spanish |
 
 ---
 
@@ -95,7 +97,7 @@ All entities belong to one device, named after your car. The device model comes 
 | Heading | ° | Direction of travel |
 | Parking Status | — | `0` = not parked on the street (value from the API) |
 | Odometer | km | Distance counter of the device |
-| Trip Odometer | km | Distance counter of the service. It is not a resettable trip. It is offset from the odometer. |
+| Service Odometer | km | Distance counter of the service. It is **not** a trip counter, and it is offset from the odometer. (Called *Trip Odometer* before 1.2.0. The entity ID did not change.) |
 | Driving Score (Today) | — | Score from 0 to 100 |
 | Driving Score (Month) | — | Score of the current month. Attributes hold the history, for example `2026-03: 99` |
 
@@ -105,8 +107,9 @@ All entities belong to one device, named after your car. The device model comes 
 |---|---|---|
 | Fuel Level | % | Fuel level from the car |
 | Fuel (Litres) | L | Fuel level × tank capacity |
-| Estimated Range | km | Litres ÷ average consumption. This uses the **certified** consumption, so the real range is usually longer. |
-| Average Consumption | L/100 km | Certified consumption of the vehicle model |
+| Measured Consumption | L/100 km | Real consumption of your car, from the fuel % and the odometer over the last ~500 km. It starts after 50 km of driving and keeps its data over restarts. |
+| Estimated Range | km | Litres ÷ consumption. It uses the **measured** consumption when it is available, and the certified one before that. The attribute `based_on` shows which. |
+| Average Consumption | L/100 km | **Certified** consumption of the vehicle model. Real driving is usually higher. |
 | Battery Voltage | V | 12 V car battery |
 | OBD Error Count | — | Number of unsolved diagnostic codes |
 | Next ITV | date | Next technical inspection date |
@@ -128,6 +131,10 @@ All entities belong to one device, named after your car. The device model comes 
 | Last Reception | When the device last sent data |
 | Location Time | Time of the last GPS fix |
 | Data Synced | When HA last read the API |
+
+#### Diagnostic entities
+
+Timestamps, WiFi details, device battery, SIM, dates and coordinates are in the **Diagnostic** group of the device page. Binary sensors *GPS Valid* and *Incompatible* are there too. This keeps the main device page short.
 
 #### Disabled by default
 
@@ -155,6 +162,12 @@ Enable these in the entity settings if you need them.
 | GPS Valid | — | The last GPS fix is valid |
 | Alarm Armed *(disabled)* | — | The anti-theft alarm is armed |
 | Incompatible *(disabled)* | problem | The device is marked as incompatible |
+
+---
+
+## 🔍 Diagnostics
+
+On the integration card, open the **⋮** menu and choose **Download diagnostics**. The file has the raw data and the settings of the integration. Email, password, token, SSID, WiFi password, SIM, serial, coordinates and IDs are replaced with `**REDACTED**`. Attach it to a bug report.
 
 ---
 
@@ -234,7 +247,18 @@ See **[docs/API.md](docs/API.md)** for the full response structure, the fields w
 | "Authentication failed" repair | Password changed. Use **Re-authenticate** on the integration. |
 | Litres or range look wrong | Set the correct tank size under **Configure**. |
 | WiFi data is 0 | Update to 1.1.0 or later. Earlier versions read the wrong field. |
-| Range looks too high | It uses the certified consumption. Real driving uses more fuel. |
+| Range looks too high | Until 50 km of driving are measured, the range uses the certified consumption. Check the `based_on` attribute. |
+
+---
+
+## 🧪 Development
+
+```bash
+pip install pytest requests
+pytest -q
+```
+
+The tests do not need Home Assistant. They cover the API parsing (with a redacted fixture), the consumption tracker and the helper functions. GitHub Actions also runs **hassfest** and the **HACS validation** on every push.
 
 ---
 
@@ -250,6 +274,14 @@ The endpoint paths for these are not public. The app traffic must be captured to
 ---
 
 ## 📝 Changelog
+
+### 1.2.0
+- **New:** *Measured Consumption* sensor (L/100 km). The range now uses it. Data is kept over restarts.
+- **New:** Download diagnostics, with personal data removed.
+- **New:** Spanish translation.
+- **New:** diagnostic entities are in the Diagnostic group.
+- **Changed:** *Trip Odometer* is now called *Service Odometer*. The entity ID is the same.
+- **Dev:** LICENSE file, tests, GitHub Actions (hassfest, HACS, pytest). The manifest has the documentation and issue tracker links.
 
 ### 1.1.1
 - **New:** integration icon (`brand/icon.png`, shown by Home Assistant 2026.3 or newer).

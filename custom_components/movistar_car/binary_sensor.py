@@ -7,6 +7,7 @@ from homeassistant.components.binary_sensor import (
     BinarySensorEntityDescription,
 )
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -44,6 +45,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[MovistarCarBinarySensorDescription] = [
     ),
     MovistarCarBinarySensorDescription(
         key="valid_position",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="valid_position",
         icon="mdi:crosshairs-gps",
         value_fn=lambda d: d.get("valid_position"),
@@ -64,6 +66,7 @@ BINARY_SENSOR_DESCRIPTIONS: list[MovistarCarBinarySensorDescription] = [
     ),
     MovistarCarBinarySensorDescription(
         key="incompatible",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="incompatible",
         device_class=BinarySensorDeviceClass.PROBLEM,
         icon="mdi:car-off",

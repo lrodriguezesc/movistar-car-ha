@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_PASSWORD, CONF_SCAN_INTERVAL, CONF_USERNAME
 from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.storage import Store
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
 
@@ -13,6 +14,7 @@ from .api import (
     MovistarCarAuthError,
     MovistarCarConnectionError,
 )
+from .consumption import ConsumptionTracker
 from .const import (
     CONF_DEVICE_ID,
     CONF_ENTERPRISE_KEY,
@@ -31,6 +33,8 @@ _LOGGER = logging.getLogger(__name__)
 
 AUTH_RETRY_DELAY = timedelta(minutes=10)
 AUTH_MAX_RETRIES = 2
+STORAGE_VERSION = 1
+SAVE_DELAY = 60  # seconds
 
 
 @dataclass
@@ -78,6 +82,15 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
         if token:
             self.api.set_token(token)
 
+        self.tank_capacity: float = config_entry.options.get(
+            CONF_TANK_CAPACITY, DEFAULT_TANK_CAPACITY
+        )
+        self._store = Store(
+            hass, STORAGE_VERSION, f"{DOMAIN}_{config_entry.entry_id}_consumption"
+        )
+        self.consumption = ConsumptionTracker()
+        self._consumption_loaded = False
+
         self._auth_retry_count: int = 0
         self._next_auth_retry_at: datetime | None = None
 
@@ -93,6 +106,29 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
             or "Car Connected Device",
             "serial_number": self.serial,
         }
+
+    async def _async_update_consumption(self, data: dict) -> None:
+        """Update the measured consumption and the range that depends on it."""
+        if not self._consumption_loaded:
+            self.consumption = ConsumptionTracker.from_dict(
+                await self._store.async_load()
+            )
+            self._consumption_loaded = True
+
+        if self.consumption.add_sample(data.get("kilometers"), data.get("fuel")):
+            self._store.async_delay_save(self.consumption.to_dict, SAVE_DELAY)
+
+        measured = self.consumption.consumption(self.tank_capacity)
+        data["real_consumption"] = measured
+        data["consumption_window_km"] = self.consumption.window_km
+
+        # Range: use the measured consumption when we have it, else the certified one.
+        consumption = measured or data.get("avg_consumption")
+        liters = data.get("fuel_liters")
+        data["range_estimate"] = (
+            round(liters / consumption * 100) if liters is not None and consumption else None
+        )
+        data["range_basis"] = "measured" if measured else "certified"
 
     async def _async_update_data(self) -> MovistarCarData:
         if (
@@ -134,6 +170,8 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
             raise UpdateFailed(f"Connection error: {err}") from err
         except Exception as err:
             raise UpdateFailed(f"Error fetching data: {err}") from err
+
+        await self._async_update_consumption(data)
 
         # Successful fetch — clear any pending auth retry state
         self._auth_retry_count = 0

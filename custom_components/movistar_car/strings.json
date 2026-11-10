@@ -73,7 +73,7 @@
         "name": "Odometer"
       },
       "trip_odometer": {
-        "name": "Trip Odometer"
+        "name": "Service Odometer"
       },
       "heading": {
         "name": "Heading"
@@ -158,6 +158,9 @@
       },
       "alarm_date": {
         "name": "Last Alarm"
+      },
+      "real_consumption": {
+        "name": "Measured Consumption"
       }
     },
     "binary_sensor": {

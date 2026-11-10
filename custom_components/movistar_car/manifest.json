@@ -1,11 +1,14 @@
 {
   "domain": "movistar_car",
   "name": "Movistar Car",
-  "codeowners": [],
+  "codeowners": [
+    "@lrodriguezesc"
+  ],
   "config_flow": true,
   "dependencies": [],
-  "documentation": "",
+  "documentation": "https://github.com/lrodriguezesc/movistar-car-ha",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/lrodriguezesc/movistar-car-ha/issues",
   "requirements": [],
-  "version": "1.1.1"
+  "version": "1.2.0"
 }

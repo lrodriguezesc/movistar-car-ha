@@ -1,6 +1,5 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import date, datetime, timezone
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -10,6 +9,7 @@ from homeassistant.components.sensor import (
 )
 from homeassistant.const import (
     PERCENTAGE,
+    EntityCategory,
     UnitOfElectricPotential,
     UnitOfInformation,
     UnitOfLength,
@@ -23,48 +23,13 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import MovistarCarCoordinator, MovistarCarData
-
-
-def _ms_to_datetime(value) -> datetime | None:
-    if value is None:
-        return None
-    try:
-        return datetime.fromtimestamp(value / 1000, tz=timezone.utc)
-    except (TypeError, ValueError, OSError):
-        return None
-
-
-def _ms_to_date(value) -> date | None:
-    dt = _ms_to_datetime(value)
-    return dt.date() if dt else None
-
-
-def _itv_days_left(d: dict) -> int | None:
-    due = _ms_to_date(d.get("next_itv_date"))
-    return (due - date.today()).days if due else None
-
-
-def _score_month(d: dict):
-    """Score for the current month. The API uses -1 for months with no data."""
-    scores = d.get("scoring_monthly")
-    if not isinstance(scores, dict):
-        return None
-    today = date.today()
-    months = scores.get(str(today.year)) or []
-    value = months[today.month - 1] if len(months) >= today.month else None
-    return value if value is not None and value >= 0 else None
-
-
-def _score_history(d: dict) -> dict | None:
-    scores = d.get("scoring_monthly")
-    if not isinstance(scores, dict):
-        return None
-    return {
-        f"{year}-{i + 1:02d}": v
-        for year, months in scores.items()
-        for i, v in enumerate(months)
-        if v is not None and v >= 0
-    }
+from .helpers import (
+    itv_days_left,
+    ms_to_date,
+    ms_to_datetime,
+    score_history,
+    score_month,
+)
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -128,27 +93,31 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="last_reception",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="last_reception",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:clock-outline",
-        value_fn=lambda d: _ms_to_datetime(d.get("last_reception")),
+        value_fn=lambda d: ms_to_datetime(d.get("last_reception")),
     ),
     MovistarCarSensorDescription(
         key="location_time",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="location_time",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:map-clock",
-        value_fn=lambda d: _ms_to_datetime(d.get("location_time")),
+        value_fn=lambda d: ms_to_datetime(d.get("location_time")),
     ),
     MovistarCarSensorDescription(
         key="data_synced",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="data_synced",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:sync",
-        value_fn=lambda d: _ms_to_datetime(d.get("data_synced")),
+        value_fn=lambda d: ms_to_datetime(d.get("data_synced")),
     ),
     MovistarCarSensorDescription(
         key="wifi_ssid",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="wifi_ssid",
         icon="mdi:wifi",
         value_fn=lambda d: d.get("wifi_ssid"),
@@ -165,6 +134,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="wifi_password",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="wifi_password",
         icon="mdi:wifi-lock",
         entity_registry_enabled_default=False,
@@ -172,6 +142,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="wifi_data_pack_size",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="wifi_data_pack_size",
         icon="mdi:database",
         device_class=SensorDeviceClass.DATA_SIZE,
@@ -180,6 +151,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="wifi_ip_address",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="wifi_ip_address",
         icon="mdi:ip-network",
         entity_registry_enabled_default=False,
@@ -187,6 +159,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="battery_level",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="battery_level",
         device_class=SensorDeviceClass.BATTERY,
         state_class=SensorStateClass.MEASUREMENT,
@@ -196,27 +169,30 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="activation_date",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="activation_date",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:calendar-check",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: _ms_to_datetime(d.get("activation_date")),
+        value_fn=lambda d: ms_to_datetime(d.get("activation_date")),
     ),
     MovistarCarSensorDescription(
         key="association_date",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="association_date",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:calendar-link",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: _ms_to_datetime(d.get("association_date")),
+        value_fn=lambda d: ms_to_datetime(d.get("association_date")),
     ),
     MovistarCarSensorDescription(
         key="disconnection_date",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="disconnection_date",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:calendar-remove",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: _ms_to_datetime(d.get("disconnection_date")),
+        value_fn=lambda d: ms_to_datetime(d.get("disconnection_date")),
     ),
     MovistarCarSensorDescription(
         key="parking_status",
@@ -233,6 +209,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="event_type",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="event_type",
         icon="mdi:message-alert",
         entity_registry_enabled_default=False,
@@ -240,6 +217,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="sim_number",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="sim_number",
         icon="mdi:sim",
         entity_registry_enabled_default=False,
@@ -247,6 +225,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="latitude",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="latitude",
         icon="mdi:latitude",
         state_class=SensorStateClass.MEASUREMENT,
@@ -256,6 +235,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="longitude",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="longitude",
         icon="mdi:longitude",
         state_class=SensorStateClass.MEASUREMENT,
@@ -265,10 +245,11 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
     ),
     MovistarCarSensorDescription(
         key="wifi_pack_expiry",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="wifi_pack_expiry",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:calendar-clock",
-        value_fn=lambda d: _ms_to_datetime(d.get("wifi_pack_expiry")),
+        value_fn=lambda d: ms_to_datetime(d.get("wifi_pack_expiry")),
     ),
     MovistarCarSensorDescription(
         key="driving_score_daily",
@@ -282,15 +263,15 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
         translation_key="driving_score_month",
         state_class=SensorStateClass.MEASUREMENT,
         icon="mdi:steering",
-        value_fn=_score_month,
-        attrs_fn=lambda d: _score_history(d),
+        value_fn=score_month,
+        attrs_fn=score_history,
     ),
     MovistarCarSensorDescription(
         key="next_itv",
         translation_key="next_itv",
         device_class=SensorDeviceClass.DATE,
         icon="mdi:car-wrench",
-        value_fn=lambda d: _ms_to_date(d.get("next_itv_date")),
+        value_fn=lambda d: ms_to_date(d.get("next_itv_date")),
     ),
     MovistarCarSensorDescription(
         key="itv_days_left",
@@ -298,7 +279,7 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
         state_class=SensorStateClass.MEASUREMENT,
         native_unit_of_measurement="d",
         icon="mdi:calendar-alert",
-        value_fn=_itv_days_left,
+        value_fn=itv_days_left,
     ),
     MovistarCarSensorDescription(
         key="avg_consumption",
@@ -324,14 +305,26 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
         native_unit_of_measurement=UnitOfLength.KILOMETERS,
         icon="mdi:map-marker-distance",
         value_fn=lambda d: d.get("range_estimate"),
+        attrs_fn=lambda d: {"based_on": d.get("range_basis")},
+    ),
+    MovistarCarSensorDescription(
+        key="real_consumption",
+        translation_key="real_consumption",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement="L/100 km",
+        suggested_display_precision=1,
+        icon="mdi:fuel",
+        value_fn=lambda d: d.get("real_consumption"),
+        attrs_fn=lambda d: {"window_km": d.get("consumption_window_km")},
     ),
     MovistarCarSensorDescription(
         key="alarm_date",
+        entity_category=EntityCategory.DIAGNOSTIC,
         translation_key="alarm_date",
         device_class=SensorDeviceClass.TIMESTAMP,
         icon="mdi:alarm-light",
         entity_registry_enabled_default=False,
-        value_fn=lambda d: _ms_to_datetime(d.get("alarm_date")),
+        value_fn=lambda d: ms_to_datetime(d.get("alarm_date")),
     ),
 ]
 

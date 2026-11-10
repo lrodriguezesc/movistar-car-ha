@@ -1,0 +1,76 @@
+{
+ "Devices": [
+  {
+   "Id": 1,
+   "Serial": "SERIAL",
+   "Kilometers": 1000.5,
+   "Connected": false,
+   "LastReception": 1700000000000,
+   "Voltage": 12.7,
+   "BatteryLevel": null,
+   "DeviceStatus": 1,
+   "Incompatible": false,
+   "ActivationDate": 1600000000000,
+   "AssociationDate": 1600000000000,
+   "DisconnectionDate": null,
+   "SIMSerial": "SIM",
+   "SIMNumber": "000",
+   "WiFiStatus": {
+    "Enabled": true,
+    "IPAddress": "",
+    "SSID": "SSID",
+    "Password": "PASS",
+    "UsedData": 14.4,
+    "DataPackSize": 0
+   }
+  }
+ ],
+ "Services": [
+  {
+   "Id": 10,
+   "DeviceId": 1,
+   "VehicleId": 5,
+   "ExtraData": [
+    {
+     "Name": "SCORING_DAILY",
+     "DataType": 0,
+     "Value": "89"
+    },
+    {
+     "Name": "SCORING_MONTHLY",
+     "DataType": 0,
+     "Value": "{\"2026\":[82,94,99,-1,-1,-1,-1,-1,-1,-1,-1,-1]}"
+    }
+   ],
+   "WiFiStatus": {
+    "Enabled": true,
+    "UsedData": 3099557,
+    "DataPackSize": 21474836480,
+    "DataPacks": [
+     {
+      "Name": "Pack 20 Gb",
+      "Type": 1,
+      "Used": 3099557,
+      "Size": 21474836480,
+      "ExpirationDate": 1794956400000
+     }
+    ]
+   },
+   "TheftAlarmStatus": {
+    "Armed": false,
+    "AlarmDate": null
+   }
+  }
+ ],
+ "Vehicles": [
+  {
+   "Id": 5,
+   "Make": "OPEL",
+   "Model": "CORSA",
+   "ManufacturingYear": 2014,
+   "ConsumptionAverage": 5.1,
+   "CO2Certified": 119.0,
+   "NextVTIDate": 1742252400000
+  }
+ ]
+}

@@ -147,7 +147,7 @@ Returns `[]` for this account (geofences). Probably the geofence list.
 1. **WiFi data is in two places with different meanings.** `Devices[].WiFiStatus` has `DataPackSize: 0` and a small `UsedData`. `Services[].WiFiStatus` has the real pack, in **bytes**. Use the service. Versions before 1.1.0 read the device and showed wrong values.
 2. **Monthly score uses `-1`** for months without data. Treat it as "no value", not as a score.
 3. **The `Fuel` value is a percentage.** Litres need the tank size from the user.
-4. **`ConsumptionAverage` is certified.** Real consumption is higher. A range from it is optimistic.
+4. **`ConsumptionAverage` is certified.** Real consumption is higher (about 8 L/100 km measured against 5.1 certified, for one city-driven car). That is why the integration measures it from the fuel % and the odometer.
 5. **The device sleeps.** `Connected = false` and an old `LastReception` are normal when the car is parked.
 6. **Keep logins rare.** Several clients can read the API at the same time (the HA integration and a separate script both work with the same account). We did not test whether a new `PUT /session` invalidates older tokens. Login only when the token is rejected.
 7. **Large payload.** `GET /session` carries the whole enterprise config (about 300 items) and about 120 product properties. It is called on every poll to validate the token and to read device data. Keep the update interval reasonable.
@@ -180,7 +180,8 @@ If the app uses certificate pinning, use a rooted device or a tool such as Frida
 | Value | Formula |
 |---|---|
 | Fuel (litres) | `Fuel % ÷ 100 × tank capacity` |
-| Estimated range (km) | `litres ÷ ConsumptionAverage × 100` |
+| Measured consumption (L/100 km) | Sum of `% of tank used ÷ 100 × tank capacity` over the last ~500 km, divided by the km driven. Refuel intervals are skipped. Needs 50 km. |
+| Estimated range (km) | `litres ÷ measured consumption × 100`. Before 50 km of data: `litres ÷ ConsumptionAverage × 100`. |
 | Moving | `Speed > 0` |
 | ITV days left | `NextVTIDate − today` (negative if overdue) |
 | OBD error count | number of codes where `Solved` is `false` |
