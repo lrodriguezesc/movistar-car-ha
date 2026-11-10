@@ -1,12 +1,14 @@
 <div align="center">
 
+<img src="custom_components/movistar_car/brand/icon@2x.png" alt="Movistar Car icon" width="128" height="128">
+
 # 🚗 Movistar Car for Home Assistant
 
 **Your connected car, live in Home Assistant.**
 GPS position, fuel and range, battery voltage, driving score, ITV date, WiFi data pack and more, from your Movistar Car / Movistar Mobility device.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
-![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.1.1-blue.svg)
 ![IoT class](https://img.shields.io/badge/iot__class-cloud__polling-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -248,6 +250,9 @@ The endpoint paths for these are not public. The app traffic must be captured to
 ---
 
 ## 📝 Changelog
+
+### 1.1.1
+- **New:** integration icon (`brand/icon.png`, shown by Home Assistant 2026.3 or newer).
 
 ### 1.1.0
 - **New:** driving score (today and month, with history), next ITV date and days left, average consumption, fuel in litres, estimated range, WiFi pack expiry, alarm sensors.
