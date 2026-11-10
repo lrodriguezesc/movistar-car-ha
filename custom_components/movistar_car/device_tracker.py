@@ -26,13 +26,7 @@ class MovistarCarTracker(CoordinatorEntity[MovistarCarCoordinator], TrackerEntit
     def __init__(self, coordinator: MovistarCarCoordinator) -> None:
         super().__init__(coordinator)
         self._attr_unique_id = f"{DOMAIN}_{coordinator.device_id}_tracker"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, str(coordinator.device_id))},
-            "name": coordinator.vehicle_name,
-            "manufacturer": "Movistar",
-            "model": "Car Connected Device",
-            "serial_number": coordinator.serial,
-        }
+        self._attr_device_info = coordinator.device_info
 
     @property
     def source_type(self) -> SourceType:

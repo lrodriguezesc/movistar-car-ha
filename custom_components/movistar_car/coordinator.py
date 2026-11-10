@@ -17,11 +17,13 @@ from .const import (
     CONF_DEVICE_ID,
     CONF_ENTERPRISE_KEY,
     CONF_SERVICE_ID,
+    CONF_TANK_CAPACITY,
     CONF_TOKEN,
     CONF_VEHICLE_INDEX,
     CONF_VEHICLE_NAME,
     DEFAULT_ENTERPRISE_KEY,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TANK_CAPACITY,
     DOMAIN,
 )
 
@@ -67,6 +69,9 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
             enterprise_key=config_entry.data.get(
                 CONF_ENTERPRISE_KEY, DEFAULT_ENTERPRISE_KEY
             ),
+            tank_capacity=config_entry.options.get(
+                CONF_TANK_CAPACITY, DEFAULT_TANK_CAPACITY
+            ),
         )
 
         token = config_entry.data.get(CONF_TOKEN)
@@ -75,6 +80,19 @@ class MovistarCarCoordinator(DataUpdateCoordinator[MovistarCarData]):
 
         self._auth_retry_count: int = 0
         self._next_auth_retry_at: datetime | None = None
+
+    @property
+    def device_info(self) -> dict:
+        data = self.data.data if self.data else {}
+        make, model = data.get("vehicle_make"), data.get("vehicle_model")
+        return {
+            "identifiers": {(DOMAIN, str(self.device_id))},
+            "name": self.vehicle_name,
+            "manufacturer": "Movistar",
+            "model": " ".join(x for x in (make, model) if x)
+            or "Car Connected Device",
+            "serial_number": self.serial,
+        }
 
     async def _async_update_data(self) -> MovistarCarData:
         if (

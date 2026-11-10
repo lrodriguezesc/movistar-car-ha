@@ -20,7 +20,11 @@ from .const import (
     CONF_VEHICLE_INDEX,
     CONF_VEHICLE_NAME,
     DEFAULT_ENTERPRISE_KEY,
+    CONF_TANK_CAPACITY,
     DEFAULT_SCAN_INTERVAL,
+    DEFAULT_TANK_CAPACITY,
+    MAX_TANK_CAPACITY,
+    MIN_TANK_CAPACITY,
     DOMAIN,
     MIN_SCAN_INTERVAL,
 )
@@ -38,6 +42,19 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
 )
 
 
+STEP_SETUP_DATA_SCHEMA = STEP_USER_DATA_SCHEMA.extend(
+    {
+        vol.Required(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): vol.All(
+            vol.Coerce(int), vol.Range(min=MIN_SCAN_INTERVAL, max=3600)
+        ),
+        vol.Required(CONF_TANK_CAPACITY, default=DEFAULT_TANK_CAPACITY): vol.All(
+            vol.Coerce(float),
+            vol.Range(min=MIN_TANK_CAPACITY, max=MAX_TANK_CAPACITY),
+        ),
+    }
+)
+
+
 class MovistarCarConfigFlow(ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
@@ -49,6 +66,7 @@ class MovistarCarConfigFlow(ConfigFlow, domain=DOMAIN):
         self._password: str = ""
         self._enterprise_key: str = ""
         self._token: str = ""
+        self._options: dict = {}
 
     async def async_step_user(
         self, user_input: dict | None = None
@@ -61,6 +79,15 @@ class MovistarCarConfigFlow(ConfigFlow, domain=DOMAIN):
             self._enterprise_key = user_input.get(
                 CONF_ENTERPRISE_KEY, DEFAULT_ENTERPRISE_KEY
             )
+
+            self._options = {
+                CONF_SCAN_INTERVAL: user_input.get(
+                    CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                ),
+                CONF_TANK_CAPACITY: user_input.get(
+                    CONF_TANK_CAPACITY, DEFAULT_TANK_CAPACITY
+                ),
+            }
 
             self._api = MovistarCarAPI(
                 self._username, self._password, self._enterprise_key
@@ -101,7 +128,7 @@ class MovistarCarConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="user",
-            data_schema=STEP_USER_DATA_SCHEMA,
+            data_schema=STEP_SETUP_DATA_SCHEMA,
             errors=errors,
         )
 
@@ -160,6 +187,7 @@ class MovistarCarConfigFlow(ConfigFlow, domain=DOMAIN):
                 CONF_VEHICLE_NAME: vehicle_name,
                 "serial": serial,
             },
+            options=self._options,
         )
 
     async def async_step_reauth(
@@ -238,6 +266,15 @@ class MovistarCarOptionsFlow(OptionsFlow):
                         CONF_SCAN_INTERVAL, default=current_interval
                     ): vol.All(
                         vol.Coerce(int), vol.Range(min=MIN_SCAN_INTERVAL, max=3600)
+                    ),
+                    vol.Required(
+                        CONF_TANK_CAPACITY,
+                        default=self.config_entry.options.get(
+                            CONF_TANK_CAPACITY, DEFAULT_TANK_CAPACITY
+                        ),
+                    ): vol.All(
+                        vol.Coerce(float),
+                        vol.Range(min=MIN_TANK_CAPACITY, max=MAX_TANK_CAPACITY),
                     ),
                 }
             ),

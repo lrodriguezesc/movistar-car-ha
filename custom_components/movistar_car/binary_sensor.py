@@ -56,6 +56,13 @@ BINARY_SENSOR_DESCRIPTIONS: list[MovistarCarBinarySensorDescription] = [
         value_fn=lambda d: d.get("moving"),
     ),
     MovistarCarBinarySensorDescription(
+        key="alarm_armed",
+        translation_key="alarm_armed",
+        icon="mdi:shield-car",
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: d.get("alarm_armed"),
+    ),
+    MovistarCarBinarySensorDescription(
         key="incompatible",
         translation_key="incompatible",
         device_class=BinarySensorDeviceClass.PROBLEM,
@@ -94,13 +101,7 @@ class MovistarCarBinarySensor(
         self._attr_unique_id = (
             f"{DOMAIN}_{coordinator.device_id}_{description.key}"
         )
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, str(coordinator.device_id))},
-            "name": coordinator.vehicle_name,
-            "manufacturer": "Movistar",
-            "model": "Car Connected Device",
-            "serial_number": coordinator.serial,
-        }
+        self._attr_device_info = coordinator.device_info
 
     @property
     def is_on(self) -> bool | None:

@@ -15,5 +15,11 @@ CONF_SERVICE_ID = "service_id"
 CONF_VEHICLE_NAME = "vehicle_name"
 CONF_TOKEN = "token"
 
+# The API only gives fuel as a percentage, so tank size is a per-car option (litres).
+CONF_TANK_CAPACITY = "tank_capacity"
+DEFAULT_TANK_CAPACITY = 45.0
+MIN_TANK_CAPACITY = 5.0
+MAX_TANK_CAPACITY = 200.0
+
 DEFAULT_SCAN_INTERVAL = 300
 MIN_SCAN_INTERVAL = 30

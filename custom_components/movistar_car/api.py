@@ -1,3 +1,4 @@
+import json
 import logging
 from datetime import datetime, timezone
 
@@ -9,9 +10,32 @@ from .const import (
     API_SESSION_URL,
     API_USER_AGENT,
     DEFAULT_ENTERPRISE_KEY,
+    DEFAULT_TANK_CAPACITY,
 )
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _to_number(value) -> float | None:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _parse_json(value):
+    if not isinstance(value, str):
+        return None
+    try:
+        return json.loads(value)
+    except ValueError:
+        return None
+
+
+def _bytes_to_mb(value) -> float | None:
+    if value is None:
+        return None
+    return round(value / 1024 / 1024, 2)
 
 
 class MovistarCarAuthError(Exception):
@@ -27,10 +51,17 @@ class MovistarCarAPIError(Exception):
 
 
 class MovistarCarAPI:
-    def __init__(self, username: str, password: str, enterprise_key: str | None = None):
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        enterprise_key: str | None = None,
+        tank_capacity: float = DEFAULT_TANK_CAPACITY,
+    ):
         self.username = username
         self.password = password
         self.enterprise_key = enterprise_key or DEFAULT_ENTERPRISE_KEY
+        self.tank_capacity = tank_capacity
         self.token: str | None = None
         self.session = requests.Session()
         self.session.headers.update(
@@ -162,7 +193,53 @@ class MovistarCarAPI:
 
         wifi = device.get("WiFiStatus", {})
 
+        # Service and vehicle data come from the same /session response.
+        services = session_data.get("Services", [])
+        service = next(
+            (s for s in services if s.get("Id") == service_id),
+            next(
+                (s for s in services if s.get("DeviceId") == device.get("Id")), {}
+            ),
+        )
+        vehicles = session_data.get("Vehicles", [])
+        vehicle = next(
+            (v for v in vehicles if v.get("Id") == service.get("VehicleId")), {}
+        )
+        service_wifi = service.get("WiFiStatus") or {}
+        packs = service_wifi.get("DataPacks") or []
+        pack = packs[0] if packs else {}
+        theft = service.get("TheftAlarmStatus") or {}
+        extra = {e.get("Name"): e.get("Value") for e in service.get("ExtraData") or []}
+
+        fuel = latest_event.get("Fuel")
+        consumption = vehicle.get("ConsumptionAverage")
+        fuel_liters = (
+            round(fuel / 100 * self.tank_capacity, 1) if fuel is not None else None
+        )
+        range_km = (
+            round(fuel_liters / consumption * 100)
+            if fuel_liters is not None and consumption
+            else None
+        )
+
         return {
+            # Service / vehicle data
+            "vehicle_make": vehicle.get("Make"),
+            "vehicle_model": vehicle.get("Model"),
+            "vehicle_year": vehicle.get("ManufacturingYear"),
+            "next_itv_date": vehicle.get("NextVTIDate"),
+            "avg_consumption": consumption,
+            "co2_certified": vehicle.get("CO2Certified"),
+            "fuel_liters": fuel_liters,
+            "range_estimate": range_km,
+            "scoring_daily": _to_number(extra.get("SCORING_DAILY")),
+            "scoring_monthly": _parse_json(extra.get("SCORING_MONTHLY")),
+            "alarm_armed": theft.get("Armed"),
+            "alarm_date": theft.get("AlarmDate"),
+            "wifi_pack_used_mb": _bytes_to_mb(pack.get("Used")),
+            "wifi_pack_size_mb": _bytes_to_mb(pack.get("Size")),
+            "wifi_pack_expiry": pack.get("ExpirationDate"),
+            # Existing data
             # Device data
             "device_id": device.get("Id"),
             "serial": device.get("Serial"),

@@ -1,6 +1,6 @@
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 
 from homeassistant.components.sensor import (
     SensorDeviceClass,
@@ -11,8 +11,10 @@ from homeassistant.components.sensor import (
 from homeassistant.const import (
     PERCENTAGE,
     UnitOfElectricPotential,
+    UnitOfInformation,
     UnitOfLength,
     UnitOfSpeed,
+    UnitOfVolume,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -32,9 +34,43 @@ def _ms_to_datetime(value) -> datetime | None:
         return None
 
 
+def _ms_to_date(value) -> date | None:
+    dt = _ms_to_datetime(value)
+    return dt.date() if dt else None
+
+
+def _itv_days_left(d: dict) -> int | None:
+    due = _ms_to_date(d.get("next_itv_date"))
+    return (due - date.today()).days if due else None
+
+
+def _score_month(d: dict):
+    """Score for the current month. The API uses -1 for months with no data."""
+    scores = d.get("scoring_monthly")
+    if not isinstance(scores, dict):
+        return None
+    today = date.today()
+    months = scores.get(str(today.year)) or []
+    value = months[today.month - 1] if len(months) >= today.month else None
+    return value if value is not None and value >= 0 else None
+
+
+def _score_history(d: dict) -> dict | None:
+    scores = d.get("scoring_monthly")
+    if not isinstance(scores, dict):
+        return None
+    return {
+        f"{year}-{i + 1:02d}": v
+        for year, months in scores.items()
+        for i, v in enumerate(months)
+        if v is not None and v >= 0
+    }
+
+
 @dataclass(frozen=True, kw_only=True)
 class MovistarCarSensorDescription(SensorEntityDescription):
     value_fn: Callable[[dict], object]
+    attrs_fn: Callable[[dict], dict | None] | None = None
 
 
 SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
@@ -121,9 +157,11 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
         key="wifi_data_used",
         translation_key="wifi_data_used",
         icon="mdi:wifi-arrow-up-down",
+        device_class=SensorDeviceClass.DATA_SIZE,
         state_class=SensorStateClass.MEASUREMENT,
-        native_unit_of_measurement="MB",
-        value_fn=lambda d: d.get("wifi_data_used"),
+        native_unit_of_measurement=UnitOfInformation.MEGABYTES,
+        suggested_display_precision=1,
+        value_fn=lambda d: d.get("wifi_pack_used_mb"),
     ),
     MovistarCarSensorDescription(
         key="wifi_password",
@@ -136,8 +174,9 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
         key="wifi_data_pack_size",
         translation_key="wifi_data_pack_size",
         icon="mdi:database",
-        native_unit_of_measurement="MB",
-        value_fn=lambda d: d.get("wifi_data_pack_size"),
+        device_class=SensorDeviceClass.DATA_SIZE,
+        native_unit_of_measurement=UnitOfInformation.MEGABYTES,
+        value_fn=lambda d: d.get("wifi_pack_size_mb"),
     ),
     MovistarCarSensorDescription(
         key="wifi_ip_address",
@@ -224,6 +263,76 @@ SENSOR_DESCRIPTIONS: list[MovistarCarSensorDescription] = [
         entity_registry_enabled_default=False,
         value_fn=lambda d: d.get("longitude"),
     ),
+    MovistarCarSensorDescription(
+        key="wifi_pack_expiry",
+        translation_key="wifi_pack_expiry",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:calendar-clock",
+        value_fn=lambda d: _ms_to_datetime(d.get("wifi_pack_expiry")),
+    ),
+    MovistarCarSensorDescription(
+        key="driving_score_daily",
+        translation_key="driving_score_daily",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:steering",
+        value_fn=lambda d: d.get("scoring_daily"),
+    ),
+    MovistarCarSensorDescription(
+        key="driving_score_month",
+        translation_key="driving_score_month",
+        state_class=SensorStateClass.MEASUREMENT,
+        icon="mdi:steering",
+        value_fn=_score_month,
+        attrs_fn=lambda d: _score_history(d),
+    ),
+    MovistarCarSensorDescription(
+        key="next_itv",
+        translation_key="next_itv",
+        device_class=SensorDeviceClass.DATE,
+        icon="mdi:car-wrench",
+        value_fn=lambda d: _ms_to_date(d.get("next_itv_date")),
+    ),
+    MovistarCarSensorDescription(
+        key="itv_days_left",
+        translation_key="itv_days_left",
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement="d",
+        icon="mdi:calendar-alert",
+        value_fn=_itv_days_left,
+    ),
+    MovistarCarSensorDescription(
+        key="avg_consumption",
+        translation_key="avg_consumption",
+        native_unit_of_measurement="L/100 km",
+        icon="mdi:fuel",
+        value_fn=lambda d: d.get("avg_consumption"),
+    ),
+    MovistarCarSensorDescription(
+        key="fuel_liters",
+        translation_key="fuel_liters",
+        device_class=SensorDeviceClass.VOLUME_STORAGE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfVolume.LITERS,
+        icon="mdi:gas-station",
+        value_fn=lambda d: d.get("fuel_liters"),
+    ),
+    MovistarCarSensorDescription(
+        key="range_estimate",
+        translation_key="range_estimate",
+        device_class=SensorDeviceClass.DISTANCE,
+        state_class=SensorStateClass.MEASUREMENT,
+        native_unit_of_measurement=UnitOfLength.KILOMETERS,
+        icon="mdi:map-marker-distance",
+        value_fn=lambda d: d.get("range_estimate"),
+    ),
+    MovistarCarSensorDescription(
+        key="alarm_date",
+        translation_key="alarm_date",
+        device_class=SensorDeviceClass.TIMESTAMP,
+        icon="mdi:alarm-light",
+        entity_registry_enabled_default=False,
+        value_fn=lambda d: _ms_to_datetime(d.get("alarm_date")),
+    ),
 ]
 
 
@@ -253,13 +362,14 @@ class MovistarCarSensor(CoordinatorEntity[MovistarCarCoordinator], SensorEntity)
         self._attr_unique_id = (
             f"{DOMAIN}_{coordinator.device_id}_{description.key}"
         )
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, str(coordinator.device_id))},
-            "name": coordinator.vehicle_name,
-            "manufacturer": "Movistar",
-            "model": "Car Connected Device",
-            "serial_number": coordinator.serial,
-        }
+        self._attr_device_info = coordinator.device_info
+
+    @property
+    def extra_state_attributes(self):
+        fn = self.entity_description.attrs_fn
+        if fn is None or self.coordinator.data is None:
+            return None
+        return fn(self.coordinator.data.data)
 
     @property
     def native_value(self):

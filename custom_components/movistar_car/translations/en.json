@@ -7,7 +7,13 @@
         "data": {
           "username": "Email",
           "password": "Password",
-          "enterprise_key": "Enterprise Key (advanced)"
+          "enterprise_key": "Enterprise Key (advanced)",
+          "scan_interval": "Update interval (seconds)",
+          "tank_capacity": "Fuel tank capacity (litres)"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll Movistar. You can change it later with Configure.",
+          "tank_capacity": "Used to turn the fuel % into litres and estimated range. You can change it later with Configure."
         }
       },
       "select_vehicle": {
@@ -43,45 +49,139 @@
       "init": {
         "title": "Movistar Car Options",
         "data": {
-          "scan_interval": "Update interval (seconds)"
+          "scan_interval": "Update interval (seconds)",
+          "tank_capacity": "Fuel tank capacity (litres)"
+        },
+        "data_description": {
+          "tank_capacity": "Used to turn the fuel % into litres and estimated range."
         }
       }
     }
   },
   "entity": {
     "sensor": {
-      "voltage": { "name": "Battery Voltage" },
-      "fuel": { "name": "Fuel Level" },
-      "speed": { "name": "Speed" },
-      "odometer": { "name": "Odometer" },
-      "trip_odometer": { "name": "Trip Odometer" },
-      "heading": { "name": "Heading" },
-      "last_reception": { "name": "Last Reception" },
-      "location_time": { "name": "Location Time" },
-      "data_synced": { "name": "Data Synced" },
-      "wifi_ssid": { "name": "WiFi SSID" },
-      "wifi_data_used": { "name": "WiFi Data Used" },
-      "wifi_password": { "name": "WiFi Password" },
-      "wifi_data_pack_size": { "name": "WiFi Data Pack Size" },
-      "wifi_ip_address": { "name": "WiFi IP Address" },
-      "battery_level": { "name": "Device Battery" },
-      "activation_date": { "name": "Activation Date" },
-      "association_date": { "name": "Association Date" },
-      "disconnection_date": { "name": "Disconnection Date" },
-      "parking_status": { "name": "Parking Status" },
-      "error_count": { "name": "OBD Error Count" },
-      "event_type": { "name": "Event Type" },
-      "sim_number": { "name": "SIM Number" },
-      "latitude": { "name": "Latitude" },
-      "longitude": { "name": "Longitude" }
+      "voltage": {
+        "name": "Battery Voltage"
+      },
+      "fuel": {
+        "name": "Fuel Level"
+      },
+      "speed": {
+        "name": "Speed"
+      },
+      "odometer": {
+        "name": "Odometer"
+      },
+      "trip_odometer": {
+        "name": "Trip Odometer"
+      },
+      "heading": {
+        "name": "Heading"
+      },
+      "last_reception": {
+        "name": "Last Reception"
+      },
+      "location_time": {
+        "name": "Location Time"
+      },
+      "data_synced": {
+        "name": "Data Synced"
+      },
+      "wifi_ssid": {
+        "name": "WiFi SSID"
+      },
+      "wifi_data_used": {
+        "name": "WiFi Data Used"
+      },
+      "wifi_password": {
+        "name": "WiFi Password"
+      },
+      "wifi_data_pack_size": {
+        "name": "WiFi Data Pack Size"
+      },
+      "wifi_ip_address": {
+        "name": "WiFi IP Address"
+      },
+      "battery_level": {
+        "name": "Device Battery"
+      },
+      "activation_date": {
+        "name": "Activation Date"
+      },
+      "association_date": {
+        "name": "Association Date"
+      },
+      "disconnection_date": {
+        "name": "Disconnection Date"
+      },
+      "parking_status": {
+        "name": "Parking Status"
+      },
+      "error_count": {
+        "name": "OBD Error Count"
+      },
+      "event_type": {
+        "name": "Event Type"
+      },
+      "sim_number": {
+        "name": "SIM Number"
+      },
+      "latitude": {
+        "name": "Latitude"
+      },
+      "longitude": {
+        "name": "Longitude"
+      },
+      "wifi_pack_expiry": {
+        "name": "WiFi Data Pack Expiry"
+      },
+      "driving_score_daily": {
+        "name": "Driving Score (Today)"
+      },
+      "driving_score_month": {
+        "name": "Driving Score (Month)"
+      },
+      "next_itv": {
+        "name": "Next ITV"
+      },
+      "itv_days_left": {
+        "name": "ITV Days Left"
+      },
+      "avg_consumption": {
+        "name": "Average Consumption"
+      },
+      "fuel_liters": {
+        "name": "Fuel (Litres)"
+      },
+      "range_estimate": {
+        "name": "Estimated Range"
+      },
+      "alarm_date": {
+        "name": "Last Alarm"
+      }
     },
     "binary_sensor": {
-      "connected": { "name": "Connected" },
-      "errors": { "name": "OBD Errors" },
-      "wifi_enabled": { "name": "WiFi Enabled" },
-      "valid_position": { "name": "GPS Valid" },
-      "moving": { "name": "Moving" },
-      "incompatible": { "name": "Incompatible Device" }
+      "connected": {
+        "name": "Connected"
+      },
+      "errors": {
+        "name": "OBD Errors"
+      },
+      "wifi_enabled": {
+        "name": "WiFi Enabled"
+      },
+      "valid_position": {
+        "name": "GPS Valid"
+      },
+      "moving": {
+        "name": "Moving"
+      },
+      "incompatible": {
+        "name": "Incompatible Device"
+      },
+      "alarm_armed": {
+        "name": "Alarm Armed"
+      }
     }
   }
 }
