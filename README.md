@@ -8,7 +8,7 @@
 GPS position, fuel and range, battery voltage, driving score, ITV date, WiFi data pack and more, from your Movistar Car / Movistar Mobility device.
 
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
-![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.2.1-blue.svg)
 [![Validate](https://github.com/lrodriguezesc/movistar-car-ha/actions/workflows/validate.yml/badge.svg)](https://github.com/lrodriguezesc/movistar-car-ha/actions/workflows/validate.yml) ![IoT class](https://img.shields.io/badge/iot__class-cloud__polling-lightgrey.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -274,6 +274,9 @@ The endpoint paths for these are not public. The app traffic must be captured to
 ---
 
 ## 📝 Changelog
+
+### 1.2.1
+- **Fix:** import `TrackerEntity` from its public path. Removes the deprecation warning (the old path stops working in HA Core 2027.6).
 
 ### 1.2.0
 - **New:** *Measured Consumption* sensor (L/100 km). The range now uses it. Data is kept over restarts.
